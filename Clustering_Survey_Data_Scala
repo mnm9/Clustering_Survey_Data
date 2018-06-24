@@ -1,0 +1,147 @@
+%md
+**Clustering of Malnutrition and Socio-Economic Factors**
+%md
+***TAR.GZ files for all DHS files between 2008 - 2018 for countries starting with letters from 'A' to 'N' were loaded, after which tar.gzip files are extracted 
+to resources/data/ folder in DSW.***
+%md
+***Extract tar.gzip files that are saved on DataScientist Workbench***
+%sh
+tar -zxvf '/resources/data/TAR_A.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_B.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_C.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_DE.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_G1.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_G2.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_HI.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_I2.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_I3.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_I4.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_IJK.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_LM.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_N.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_PR.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_ST.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_TU.tar.gz' -C /resources/data/
+tar -zxvf '/resources/data/TAR_YZ.tar.gz' -C /resources/data/
+
+%md
+***Comparing Angola (2016), Albania (2008) and Nepal (2011) files to understand the structure of data***
+//variable fx with the location of the file
+var angola = "/resources/data/Angola_Child_AOKR71FL_2016.csv"
+var albania = "/resources/data/Albania_Child_ALKR50FL_2008.csv"
+var nepal = "/resources/data/Nepal_Child_NPKR60FL_2011.csv"
+
+//create dataframe angoladf for Angola 2016 dataset
+var angoladf = spark.read
+         .format("csv")
+         .option("header", "true") //reading the headers
+         .option("mode", "DROPMALFORMED")
+         .option("inferSchema", "true") 
+         .load(angola)
+         
+angoladf.printSchema()
+
+//create dataframe nepaldf for Nepal 2011 dataset
+var nepaldf = spark.read
+         .format("csv")
+         .option("header", "true") //reading the headers
+         .option("mode", "DROPMALFORMED")
+         .option("inferSchema", "true") 
+         .load(nepal)
+         
+nepaldf.printSchema()
+
+//create dataframe angoladf for Albania 2008 dataset
+var albaniadf = spark.read
+         .format("csv")
+         .option("header", "true") //reading the headers
+         .option("mode", "DROPMALFORMED")
+         .option("inferSchema", "true") 
+         .load(albania)
+         
+albaniadf.printSchema()
+
+%md
+***Merging Datasets to create a final dataset that has variables of interest***
+
+//Create a list of files for the directory TAR_A and filter for DHS data based on filename and type
+import java.io.File
+val file = new File("/resources/data/")
+val fileList = file.listFiles.filter(_.isFile)
+    .filter(_.getName.endsWith(".csv")).filter(_.getName.contains("Child"))
+    .map(_.getPath).toList
+
+//Select variables of interest from research papers [4-7]
+
+//Create an empty dataframe with schema
+val caseid = $"caseid".string       //"Case Identification"
+val midx = $"midx".int      //"Index to Birth History          
+val v007 = $"v007".int       //"Year of interview"
+val v012 = $"v012".int      //"Respondent's current age"
+val v015 = $"v015".int      //"Result of individual interview"
+val v026 = $"v026".string       //"De facto place of residence"
+val v133 = $"v133".int      //"Education in single years"
+val v136 = $"v136".int      //“Number of household members (listed)
+val v155 = $"v155".int      //“Literacy”
+val v190 = $"v190".int      //“Wealth index”
+val v201 = $"v201".int      //“Total children ever born”
+val v212 = $"v212".int      //“Age of respondent at first birth”
+val v228 = $"v228".int      //“Ever had a terminated pregnancy”
+val v445 = $"v445".int      //“Body mass index”
+val v447a = $"v447a".int        //“Women's age in years (from household questionna”
+val v501 = $"v501".int      //“Current marital status”
+val v731 = $"v731".int      //“Respondent worked in last 12 months”
+val b4 = $"b4".int      //“Sex of child”
+val b5 = $"b5".int      //“Child is alive”
+val b8 = $"b8".int      //“Current age of child (in months)
+val hw70 = $"hw70".int      //“Height/Age standard deviation (new WHO)”
+val hw71 = $"hw71".string	//“Weight/Age standard deviation (new WHO)”
+val hw72 = $"hw72".string       //“Weight/Height standard deviation (new WHO)”
+val hw73 = $"hw73".string       //“BMI standard deviation (new WHO)”
+val filename = $"filename".string     //"filename"
+val countries = $"countries".string     //"country"
+
+
+import org.apache.spark.sql.types.StructType
+val mySchema = StructType(caseid :: midx :: v007 :: v012 :: v015 :: v026 :: v133 :: v136 ::
+v155 :: v190 :: v201 :: v212 :: v228 :: v445 :: v447a :: 
+v501 :: v731 :: b4 :: b5 :: b8 :: hw70 :: hw71 :: hw72 :: hw73 :: filename :: countries :: Nil)
+import org.apache.spark.sql.Row
+var unionDF = spark.createDataFrame(sc.emptyRDD[Row], mySchema)
+ 
+ 
+ for (f <- fileList) {
+    var df= spark.read
+         .format("csv")
+         .option("header", "true") //reading the headers
+         .option("mode", "DROPMALFORMED")
+         .option("inferSchema", "true") 
+         .load(f)
+         .withColumn("filename",lit(f.split('/')(3)))
+         .withColumn("countries",lit(f.split('/')(3).split('_')(0)))
+        
+    //All variable headers should be lowercase
+    val cols = df.columns.map(c => s"$c as ${c.toLowerCase}")
+    val df1= df.selectExpr(cols:_*)
+    
+    var newdf = df1.select("caseid", "midx", "v007", "v012", "v015", "v026", "v133", "v136", "v155"
+    , "v190", "v201", "v212", "v228", "v445", "v447a","v501", "v731", "b4", "b5", "b8", "hw70", "hw71", "hw72", "hw73", "filename", "countries")
+
+    unionDF = unionDF.unionAll(newdf)
+    
+  }
+
+//Create a table
+unionDF.createOrReplaceTempView("unionDF")
+
+%md 
+Total number of records in the merged dataset = 950,849. The final dataset includes data from 5 continents: Africa, Asia, North America, South America and Europe, and include data from 55 countries between the years of 2008-2017.
+The top 3 countries with the most records are provided by countries: India (259,609), Nigeria (60,129) & Afghanistan (32,712).
+The countries with the leaast records are: Albania (1,616), Sao Tome & Principe (1,931) and Guyana (2,178)
+The largest number of data records come from the continent of Africa (458,397) and the least number of records come from Europe (4,813).
+
+//Count of records in the merged dataset
+%sql
+SELECT COUNT(*)
+FROM
+unionDF
