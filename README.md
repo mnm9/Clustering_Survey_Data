@@ -3,4 +3,4 @@ The code was written in Scala on Spark for a Graduate Course in Big Data Analyti
 The goal of the project was to apply machine learning techniques on Malnutrition Suvery Data collected by Demographic and Health Survey (DHS).
 
 # Dataset
-Malnutrition dataset can be found from childhood datasets: https://dhsprogram.com/Data/
+Malnutrition datasets from all available countries between 2008-2018 were downloaded from: https://dhsprogram.com/Data/
