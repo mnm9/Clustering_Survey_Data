@@ -1,11 +1,6 @@
-﻿{"paragraphs":[{"text":"%md\n**Clustering of Malnutrition and Socio-Economic Factors**\n\n
-                 **Introduction**\n\nThe purpose of this research is to replicate part of research performed by Nair et al. (2017) [1]
-								 to cluster states within India based on factors impacting childhood malnutrition. Nair et al. [1] highlighted that 
-								 there is a lack of research and application of data mining and machine learning in the field of childhood malnutrition. 
-								 Additionally, the Indian government relies on geographical clusters (ie. states) to determine policy on malnutrition 
-								 and Nair et al. [1] wanted thir research to focus on clustering variables from DHS data to cluster different states 
-								 together. This can help the Indian government in devising policies to reduce malnutrition targetted at states with 
-								 similar causes of malnutrition. Another important research work by Onda et al. (2014) [2] also performed cluster 
+﻿{"paragraphs":[{"text":"%md\n**Clustering of Malnutrition and Socio-Economic Factors**\n\n**Introduction**\n\nThe purpose of this 
+research is to replicate part of research performed by Nair et al. (2017) [1] to cluster states within India based on factors impacting childhood malnutrition. Nair et al. [1] highlighted that there is a lack of research and application of data mining and machine learning in the field of childhood malnutrition. Additionally, the Indian government relies on geographical clusters (ie. states) to determine policy on malnutrition 
+and Nair et al. [1] wanted thir research to focus on clustering variables from DHS data to cluster different states together. This can 
 								 analysis on 156 countries for water sanitation using factors highlighted in previous research to have significant 
 								 impact on water sanitation. \nTherefore this project has replicated these 2 papers to find groups in data about 
 								 prevalance of childhood malnutrition and other socio-economic factors such as  maternal health, women's status and 
