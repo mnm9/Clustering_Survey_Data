@@ -145,3 +145,80 @@ The largest number of data records come from the continent of Africa (458,397) a
 SELECT COUNT(*)
 FROM
 unionDF
+
+//Count of unique countries included in the dataset
+%sql
+SELECT COUNT(DISTINCT countries)
+FROM 
+unionDF
+
+//Top 10 countries with the largest data records
+%sql
+SELECT countries, count(*)
+FROM 
+unionDF
+GROUP BY countries
+ORDER BY count(*) DESC
+LIMIT 10
+
+//10 Countries with the least amount of data
+%sql
+SELECT countries, count(*)
+FROM 
+unionDF
+GROUP BY countries
+ORDER BY count(*) ASC
+LIMIT 10
+
+%md
+A csv containing list of countries and continents is loaded to aid in exploratory analysis.
+%sh
+wget 'https://drive.google.com/uc?export=download&id=1j3ZhkAq58WQdbj70UMcsfnTLZ07X9j9e' -O /resources/data/Countries-Continents.csv
+
+//create dataframe continents for Countries-Continents dataset
+var contDF = sqlContext.emptyDataFrame
+var contDF = spark.read
+         .format("csv")
+         .option("header", "true") //reading the headers
+         .option("mode", "DROPMALFORMED")
+         .option("inferSchema", "true") 
+         .load("/resources/data/Countries-Continents.csv")
+         .drop("_c2").drop("_c3").drop("_c4")
+         
+//Create a table
+contDF.createOrReplaceTempView("contDF")
+
+//Add Continents to the countries in the unionDF dataset
+var unionDF1 = unionDF.join(contDF, unionDF.col("countries")===contDF.col("Country"),"left")
+
+//Drop variable Country, but keep variable countries
+unionDF1 =unionDF1.drop(unionDF1.col("Country"))
+
+//Create a table
+unionDF1.createOrReplaceTempView("unionDF1")
+
+//Count of data from each continent
+
+%sql
+SELECT Continent, COUNT(*)
+FROM unionDF1
+GROUP BY Continent
+ORDER BY COUNT(*) desc
+
+%md
+**Assessment of variable v007 (Year of Interview)**
+
+//Distribution of dataset over the years
+%sql
+SELECT v007, count(*)
+FROM unionDF1
+GROUP BY v007
+ORDER BY v007 ASC
+
+//Identifying the files and countries with a non-Gregorian calendar
+%sql
+SELECT v007, countries, filename, count(*)
+FROM unionDF1
+WHERE v007 < 2006 OR v007 > 2017
+GROUP BY v007, countries, filename
+ORDER BY v007 ASC
